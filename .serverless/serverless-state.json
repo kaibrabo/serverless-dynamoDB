@@ -6,10 +6,34 @@
     },
     "provider": {
       "stage": "dev",
-      "region": "us-east-1",
+      "region": "us-west-2",
       "variableSyntax": "\\${([ ~:a-zA-Z0-9._'\",\\-\\/\\(\\)]+?)}",
       "name": "aws",
       "runtime": "python3.6",
+      "iamRoleStatements": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:Query",
+            "dynamodb:Scan",
+            "dynamodb:GetItem",
+            "dynamodb:PutItem",
+            "dynamodb:UpdateItem",
+            "dynamodb:DeleteItem"
+          ],
+          "Resource": [
+            {
+              "Fn::GetAtt": [
+                "UsersDynamoDBTable",
+                "Arn"
+              ]
+            }
+          ]
+        }
+      ],
+      "environment": {
+        "USERS_TABLE": "users-table-dev"
+      },
       "versionFunctions": true,
       "remoteFunctionData": null,
       "compiledCloudFormationTemplate": {
@@ -80,6 +104,9 @@
                             "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/serverless-flask-dev-app:*:*"
                           }
                         ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
                       }
                     ]
                   }
@@ -92,7 +119,7 @@
                   [
                     "serverless-flask",
                     "dev",
-                    "us-east-1",
+                    "us-west-2",
                     "lambdaRole"
                   ]
                 ]
@@ -106,7 +133,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/serverless-flask/dev/1530570189220-2018-07-02T22:23:09.220Z/serverless-flask.zip"
+                "S3Key": "serverless/serverless-flask/dev/1530570884112-2018-07-02T22:34:44.112Z/serverless-flask.zip"
               },
               "FunctionName": "serverless-flask-dev-app",
               "Handler": "wsgi.handler",
@@ -118,21 +145,26 @@
                 ]
               },
               "Runtime": "python3.6",
-              "Timeout": 6
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "USERS_TABLE": "users-table-dev"
+                }
+              }
             },
             "DependsOn": [
               "AppLogGroup",
               "IamRoleLambdaExecution"
             ]
           },
-          "AppLambdaVersionGqcuyr7Tl9E1L57cEI7iXj34WLGwfqtbP1P4ry7urM": {
+          "AppLambdaVersionaD4xZfCIrGP1Ryvep0nyKdxwlL4Y3PdGjNJw832h8": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "AppLambdaFunction"
               },
-              "CodeSha256": "KqSt72BNg9Tm/aTw75tLfKoZ6Z5D5v31cFh7mhKB3nY="
+              "CodeSha256": "1S6rTmpvDGG0KAMxqKeSuZrMvl5czIzmGNymYxDWi0I="
             }
           },
           "ApiGatewayRestApi": {
@@ -250,7 +282,7 @@
               "MethodResponses": []
             }
           },
-          "ApiGatewayDeployment1530570189313": {
+          "ApiGatewayDeployment1530570884258": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -309,6 +341,28 @@
                 ]
               }
             }
+          },
+          "UsersDynamoDBTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "userId",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "userId",
+                  "KeyType": "HASH"
+                }
+              ],
+              "ProvisionedThroughput": {
+                "ReadCapacityUnits": 1,
+                "WriteCapacityUnits": 1
+              },
+              "TableName": "users-table-dev"
+            }
           }
         },
         "Outputs": {
@@ -320,7 +374,7 @@
           "AppLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "AppLambdaVersionGqcuyr7Tl9E1L57cEI7iXj34WLGwfqtbP1P4ry7urM"
+              "Ref": "AppLambdaVersionaD4xZfCIrGP1Ryvep0nyKdxwlL4Y3PdGjNJw832h8"
             }
           },
           "ServiceEndpoint": {
@@ -333,7 +387,7 @@
                   {
                     "Ref": "ApiGatewayRestApi"
                   },
-                  ".execute-api.us-east-1.",
+                  ".execute-api.us-west-2.",
                   {
                     "Ref": "AWS::URLSuffix"
                   },
@@ -363,6 +417,7 @@
       "vpc": {}
     },
     "custom": {
+      "tableName": "users-table-dev",
       "wsgi": {
         "app": "app.app",
         "packRequirements": false
@@ -391,10 +446,37 @@
         "vpc": {}
       }
     },
+    "resources": {
+      "Resources": {
+        "UsersDynamoDBTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "userId",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "userId",
+                "KeyType": "HASH"
+              }
+            ],
+            "ProvisionedThroughput": {
+              "ReadCapacityUnits": 1,
+              "WriteCapacityUnits": 1
+            },
+            "TableName": "users-table-dev"
+          }
+        }
+      },
+      "Outputs": {}
+    },
     "artifact": "/Users/kubaldobrabo/Documents/Serverless/.serverless/serverless-flask.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/serverless-flask/dev/1530570189220-2018-07-02T22:23:09.220Z",
+    "artifactDirectoryName": "serverless/serverless-flask/dev/1530570884112-2018-07-02T22:34:44.112Z",
     "artifact": "serverless-flask.zip"
   }
 }
